@@ -1,0 +1,22 @@
+# Large climate datasets
+data/
+outputs/
+
+# NetCDF and rasters
+*.nc
+*.tif
+*.tiff
+
+# Logs
+*.log
+*.out
+*.err
+
+# R
+.Rhistory
+.RData
+.Rproj.user/
+
+# Python
+__pycache__/
+*.pyc
