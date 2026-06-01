@@ -63,3 +63,5 @@ Structure the answer using:
             "error": str(e),
             "message": "AgriClimateAI could not generate advice."
         }
+    
+print(os.getenv("OPENAI_API_KEY"))

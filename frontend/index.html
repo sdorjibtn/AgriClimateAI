@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>AgriClimateAI</title>
+</head>
+<body>
+  <h1>AgriClimateAI</h1>
+
+  <label>Question</label><br>
+  <textarea id="question" rows="4" cols="50">Can I grow maize in Punakha?</textarea><br><br>
+
+  <label>Crop</label><br>
+  <input id="crop" value="maize"><br><br>
+
+  <label>Location</label><br>
+  <input id="location" value="Punakha"><br><br>
+
+  <button onclick="getAdvice()">Get Advice</button>
+
+  <h2>Response</h2>
+  <pre id="response"></pre>
+
+  <script>
+    async function getAdvice() {
+      const responseBox = document.getElementById("response");
+      responseBox.textContent = "Thinking...";
+
+      const data = {
+        question: document.getElementById("question").value,
+        crop: document.getElementById("crop").value,
+        location: document.getElementById("location").value
+      };
+
+      const response = await fetch("http://127.0.0.1:8000/advisor", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+      responseBox.textContent = result.advice || JSON.stringify(result, null, 2);
+    }
+  </script>
+</body>
+</html>
