@@ -1,37 +1,65 @@
+import os
+from dotenv import load_dotenv
+from openai import OpenAI
+
+load_dotenv()
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+
 def generate_advice(question: str, crop: str | None = None, location: str | None = None) -> dict:
-    question_lower = question.lower()
+    if not os.getenv("OPENAI_API_KEY"):
+        return {"error": "OPENAI_API_KEY is missing. Add it to your .env file."}
 
-    advice = "Thank you for your question. AgriClimateAI is currently in prototype mode."
+    prompt = f"""
+You are AgriClimateAI, a farmer-friendly agricultural and climate-smart farming advisor.
 
-    if "maize" in question_lower or crop == "maize":
-        advice = (
-            "Maize generally requires warm conditions, adequate rainfall, and well-drained soil. "
-            "For Bhutan, suitability depends strongly on elevation, rainfall timing, and temperature. "
-            "Farmers should avoid waterlogged fields and consider drought-tolerant varieties where rainfall is unreliable."
+Give advice that is:
+- practical
+- simple
+- locally relevant where possible
+- cautious when information is uncertain
+- suitable for farmers and extension officers
+
+Location: {location or "Not provided"}
+Crop: {crop or "Not provided"}
+Question: {question}
+
+Structure the answer using:
+1. Main advice
+2. Possible causes or risks
+3. What the farmer should do now
+4. When to contact an extension officer
+"""
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are AgriClimateAI, an expert in agriculture, climate risk, and farmer advisory services."
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            temperature=0.3
         )
 
-    elif "rice" in question_lower or crop == "rice":
-        advice = (
-            "Rice requires reliable water availability, warm temperatures, and suitable lowland or terraced conditions. "
-            "Climate risks include delayed monsoon rainfall, heat stress during flowering, and water shortage."
-        )
+        advice = response.choices[0].message.content
 
-    elif "potato" in question_lower or crop == "potato":
-        advice = (
-            "Potato is generally better suited to cooler environments. "
-            "High temperatures may reduce tuber formation, while excessive rainfall can increase disease risk."
-        )
+        return {
+            "question": question,
+            "crop": crop,
+            "location": location,
+            "advice": advice,
+            "source": "OpenAI-powered AgriClimateAI prototype"
+        }
 
-    elif "climate" in question_lower or "rainfall" in question_lower:
-        advice = (
-            "Climate information can support crop planning by identifying rainfall patterns, temperature risks, "
-            "drought-prone periods, and future suitability changes."
-        )
-
-    return {
-        "question": question,
-        "crop": crop,
-        "location": location,
-        "advice": advice,
-        "note": "This is a prototype response. Future versions will connect to climate data, crop models, and AI."
-    }
+    except Exception as e:
+        return {
+            "error": str(e),
+            "message": "AgriClimateAI could not generate advice."
+        }
